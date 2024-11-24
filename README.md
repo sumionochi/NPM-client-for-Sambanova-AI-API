@@ -240,6 +240,127 @@ const client = new SambanovaClient('YOUR_API_KEY', {
 
 ---
 
+---
+
+## Oneshot Example To Test All Features
+
+### Streaming
+
+Add your Sambanova API key and add Local image file path. A test Online image file URL is already in place but you can replace as needed.
+
+```javascript
+import { SambanovaClient, ChatMessage, ModelType } from 'sambanova';
+
+import path from 'path';
+
+// Replace with your actual API key
+const API_KEY = 'Your API Key';
+
+async function testSambanova() {
+  try {
+    // Initialize the Sambanova client
+    const client = new SambanovaClient(API_KEY);
+
+    // Test 1: Text completion
+    console.log('Starting text completion test...');
+    const textMessages: ChatMessage[] = [
+      { role: 'user', content: 'What is the capital of France?' }
+    ];
+
+    const textResponse = await client.chat(textMessages, {
+      model: 'Meta-Llama-3.2-3B-Instruct' as ModelType 
+    });
+
+    console.log('Text Completion Response:');
+    console.log(textResponse.choices[0].message.content);
+
+    // Test 2: Vision analysis with an online image URL
+    console.log('Starting vision analysis test with an online image URL...');
+    const onlineImageMessages: ChatMessage[] = [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'What is in this image?' },
+          {
+            type: 'image_url',
+            image_url: { url: 'https://picsum.photos/200/300' } // Online image URL
+          }
+        ]
+      }
+    ];
+
+    const onlineImageResponse = await client.chat(onlineImageMessages, {
+      model: 'Llama-3.2-11B-Vision-Instruct' as ModelType 
+    });
+
+    console.log('Vision Analysis (Online Image) Response:');
+    console.log(onlineImageResponse.choices[0].message.content);
+
+    //Test 3: Vision analysis with a local image file
+    console.log('Starting vision analysis test with a local image file...');
+    const localImagePath = path.resolve(__dirname, 'image.jpg'); // Replace with your local image path
+    const localImageMessages: ChatMessage[] = [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'What is in this image?' },
+          {
+            type: 'image_url',
+            image_url: { url: localImagePath } // Local image file
+          }
+        ]
+      }
+    ];
+
+    const localImageResponse = await client.chat(localImageMessages, {
+      model: 'Llama-3.2-11B-Vision-Instruct' as ModelType 
+    });
+
+    console.log('Vision Analysis (Local Image) Response:');
+    console.log(localImageResponse.choices[0].message.content);
+
+    // Test 4: Stream chat
+    console.log('Starting text stream...');
+    const textMessages2: ChatMessage[] = [
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: 'Tell me a story about a brave knight.' }
+    ];
+
+    console.log('Streamed Text Response:');
+    for await (const chunk of client.streamChat(textMessages2, {
+      model: 'Meta-Llama-3.1-8B-Instruct' as ModelType
+    })) {
+      process.stdout.write(chunk);
+    }
+
+    console.log('\nStarting image stream...');
+    const imageMessages: ChatMessage[] = [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'What do you see in this image?' },
+          { type: 'image_url', image_url: { url: 'https://picsum.photos/200/300' } }
+        ]
+      }
+    ];
+
+    console.log('Streamed Image Response:');
+    for await (const chunk of client.streamChat(imageMessages, {
+      model: 'Llama-3.2-11B-Vision-Instruct' as ModelType
+    })) {
+      process.stdout.write(chunk);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Run the test
+testSambanova();
+```
+
+---
+
 ## Changelog
 
 ### v1.0.5
