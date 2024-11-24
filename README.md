@@ -240,8 +240,6 @@ const client = new SambanovaClient('YOUR_API_KEY', {
 
 ---
 
----
-
 ## Oneshot Example To Test All Features
 
 ### Note:
@@ -377,7 +375,4 @@ testSambanova();
 
 ---
 
-## License
-
-MIT
 ```
