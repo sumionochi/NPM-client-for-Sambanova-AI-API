@@ -8,6 +8,13 @@ A JavaScript/TypeScript client for the Sambanova AI API. This package provides a
 npm install sambanova
 ```
 
+## Connect with Me
+
+- **GitHub:** [github.com/sumionochi](https://github.com/sumionochi/NPM-client-for-Sambanova-AI-API)
+- **LinkedIn:** [aaditya-srivastava-connect](https://www.linkedin.com/in/aaditya-srivastava-connect/)
+- **Instagram:** [mito.wins.uncensored](https://www.instagram.com/mito.wins.uncensored/)
+- **Twitter (X):** [sumionochi](https://x.com/sumionochi)
+
 ## Quick Start
 
 ```javascript
