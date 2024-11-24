@@ -374,5 +374,3 @@ testSambanova();
 - The client automatically processes the image, converting it to base64 format before sending the request.
 
 ---
-
-```
