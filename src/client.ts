@@ -130,28 +130,46 @@ export class SambanovaClient {
   async *streamChat(
     messages: ChatMessage[],
     options: ChatOptions = {}
-  ): AsyncGenerator<APIResponse, void, unknown> {
+  ): AsyncGenerator<string, void, unknown> {
     const model = options.model || this.defaultModel;
-    
-    messages.forEach(msg => validateMessage(msg, isVisionModel(model)));
-
+  
+    if (isVisionModel(model)) {
+      for (const msg of messages) {
+        if (Array.isArray(msg.content)) {
+          for (const content of msg.content) {
+            if (content.type === 'image_url' && content.image_url?.url) {
+              try {
+                content.image_url.url = await getBase64Image(content.image_url.url);
+              } catch (error) {
+                throw new SambanovaError(
+                  `Failed to process image: ${error}`,
+                  400,
+                  'INVALID_IMAGE_FORMAT'
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+  
     const payload = {
       model,
       messages,
       temperature: options.temperature ?? 0.1,
       top_p: options.top_p ?? 0.1,
       max_tokens: options.max_tokens,
-      stream: true 
+      stream: true,
+      stream_options: { include_usage: true } // Optional
     };
-
+  
     const response = await this.makeRequest(
       '/chat/completions',
       payload,
       options.retry_count,
-      true 
+      true
     );
-
-    // **Modified Check:**
+  
     if (
       !response ||
       !('body' in response) ||
@@ -159,54 +177,36 @@ export class SambanovaClient {
     ) {
       throw new Error('Expected a streaming response');
     }
-
-    yield* this.handleStreamResponse(response as Response);
-  }
-
-  private async *handleStreamResponse(
-    response: Response
-  ): AsyncGenerator<APIResponse, void, unknown> {
+  
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-
+  
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+  
       buffer += decoder.decode(value, { stream: true });
-      let lines = buffer.split('\n');
-      
+      const lines = buffer.split('\n');
       buffer = lines.pop() || '';
-      
+  
       for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (trimmedLine.startsWith('data: ')) {
-          const dataStr = trimmedLine.slice(6);
-          if (dataStr === '[DONE]') {
-            return;
-          }
+        if (line.trim().startsWith('data: ')) {
+          const dataStr = line.trim().slice(6);
+          if (dataStr === '[DONE]') return;
+  
           try {
-            const data = JSON.parse(dataStr);
-            yield data;
-          } catch (e) {
-            console.error('Failed to parse stream data:', e);
+            const chunk = JSON.parse(dataStr);
+            const content = chunk.choices?.[0]?.delta?.content;
+  
+            if (content) yield content;
+          } catch (error) {
+            console.error('Failed to parse stream data:', error);
           }
-        }
-      }
-    }
-
-    // Processing any remaining buffer
-    if (buffer.startsWith('data: ')) {
-      const dataStr = buffer.slice(6);
-      if (dataStr !== '[DONE]') {
-        try {
-          const data = JSON.parse(dataStr);
-          yield data;
-        } catch (e) {
-          console.error('Failed to parse stream data:', e);
         }
       }
     }
   }
 }
+
+export { ChatMessage, ModelType, ChatOptions, MessageContent, APIResponse, SambanovaError } from './types';
