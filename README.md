@@ -33,14 +33,14 @@ async function textExample() {
   console.log(response.choices[0].message.content);
 }
 
-// Vision analysis
+// Vision analysis (supports online image URLs and local file paths)
 async function visionExample() {
   const response = await client.chat([
     {
       role: 'user',
       content: [
         { type: 'text', text: 'What is in this image?' },
-        { type: 'image_url', image_url: { url: 'your_image_url_here' }}
+        { type: 'image_url', image_url: { url: 'https://example.com/sample.jpg' }} // Online image URL
       ]
     }
   ], {
@@ -56,7 +56,7 @@ async function visionExample() {
 - TypeScript support with full type definitions
 - Error handling and automatic retries
 - Streaming support
-- Vision model integration
+- Vision model integration with **online image URLs** and **local file paths**
 
 ## Supported Models
 
@@ -70,6 +70,44 @@ async function visionExample() {
 - `Meta-Llama-3.1-405B-Instruct`
 - `Meta-Llama-3.2-1B-Instruct`
 - `Meta-Llama-3.2-3B-Instruct`
+
+## Vision Model Details
+
+The vision models support both **online image URLs** and **local file paths**. The client automatically converts images to base64 format before sending the request.
+
+### Online Image URL Example
+
+```javascript
+const response = await client.chat([
+  {
+    role: 'user',
+    content: [
+      { type: 'text', text: 'What is in this image?' },
+      { type: 'image_url', image_url: { url: 'https://example.com/sample.jpg' }} // Online URL
+    ]
+  }
+], {
+  model: 'Llama-3.2-11B-Vision-Instruct'
+});
+console.log(response.choices[0].message.content);
+```
+
+### Local Image File Example
+
+```javascript
+const response = await client.chat([
+  {
+    role: 'user',
+    content: [
+      { type: 'text', text: 'What is in this image?' },
+      { type: 'image_url', image_url: { url: './path/to/image.jpg' }} // Local file path
+    ]
+  }
+], {
+  model: 'Llama-3.2-11B-Vision-Instruct'
+});
+console.log(response.choices[0].message.content);
+```
 
 ## Advanced Usage
 
@@ -118,3 +156,9 @@ const client = new SambanovaClient('YOUR_API_KEY', {
   defaultRetryDelay: 1000
 });
 ```
+
+## Changes in Vision Model Usage
+
+- **Online Image URL Support:** Provide a direct image URL (e.g., `https://example.com/image.jpg`).
+- **Local File Path Support:** Provide a local file path (e.g., `./path/to/image.jpg`).
+- The client automatically processes the image, converting it to base64 format before sending the request.

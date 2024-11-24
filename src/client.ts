@@ -7,6 +7,8 @@ import {
   SambanovaError
 } from './types';
 
+import { getBase64Image } from './utils';
+
 export class SambanovaClient {
   private readonly baseUrl: string;
   private readonly defaultModel: ModelType;
@@ -79,9 +81,29 @@ export class SambanovaClient {
     options: ChatOptions = {}
   ): Promise<APIResponse> {
     const model = options.model || this.defaultModel;
-    
+  
+    if (isVisionModel(model)) {
+      for (const msg of messages) {
+        if (Array.isArray(msg.content)) {
+          for (const content of msg.content) {
+            if (content.type === 'image_url' && content.image_url?.url) {
+              try {
+                content.image_url.url = await getBase64Image(content.image_url.url);
+              } catch (error) {
+                throw new SambanovaError(
+                  `Failed to process image: ${error}`,
+                  400,
+                  'INVALID_IMAGE_FORMAT'
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+  
     messages.forEach(msg => validateMessage(msg, isVisionModel(model)));
-
+  
     const payload = {
       model,
       messages,
@@ -90,18 +112,18 @@ export class SambanovaClient {
       max_tokens: options.max_tokens,
       stream: options.stream ?? false
     };
-
+  
     const response = await this.makeRequest(
       '/chat/completions',
       payload,
       options.retry_count,
       payload.stream
     );
-
+  
     if (payload.stream && response instanceof Response) {
       throw new Error('Stream response received in chat method. Use streamChat instead.');
     }
-
+  
     return response as APIResponse;
   }
 

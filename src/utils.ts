@@ -1,4 +1,6 @@
 import { ModelType, ChatMessage, SambanovaError } from './types';
+import fs from 'fs';
+import axios from 'axios';
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -21,5 +23,23 @@ export const validateMessage = (message: ChatMessage, isVision: boolean) => {
       400,
       'INVALID_MESSAGE_FORMAT'
     );
+  }
+};
+
+export const getBase64Image = async (pathOrUrl: string): Promise<string> => {
+  try {
+    if (pathOrUrl.startsWith('http')) {
+      const response = await axios.get(pathOrUrl, { responseType: 'arraybuffer' });
+      const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+      const mimeType = response.headers['content-type']; 
+      return `data:${mimeType};base64,${base64Image}`;
+    } else {
+      const image = fs.readFileSync(pathOrUrl);
+      const base64Image = image.toString('base64');
+      const mimeType = 'image/jpeg'; 
+      return `data:${mimeType};base64,${base64Image}`;
+    }
+  } catch (error) {
+    throw new Error(`Failed to process image: ${pathOrUrl}. Error: ${error}`);
   }
 };
