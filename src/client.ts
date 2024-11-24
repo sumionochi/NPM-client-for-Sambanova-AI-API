@@ -31,8 +31,9 @@ export class SambanovaClient {
   private async makeRequest(
     endpoint: string,
     data: any,
-    retryCount: number = this.defaultRetryCount
-  ): Promise<APIResponse> {
+    retryCount: number = this.defaultRetryCount,
+    stream: boolean = false
+  ): Promise<APIResponse | Response> {
     let lastError: Error | null = null;
     
     for (let attempt = 0; attempt <= retryCount; attempt++) {
@@ -54,6 +55,10 @@ export class SambanovaClient {
             errorData.code,
             errorData
           );
+        }
+
+        if (stream) {
+          return response;
         }
 
         return await response.json();
@@ -86,19 +91,54 @@ export class SambanovaClient {
       stream: options.stream ?? false
     };
 
-    return this.makeRequest(
+    const response = await this.makeRequest(
       '/chat/completions',
       payload,
-      options.retry_count
+      options.retry_count,
+      payload.stream
     );
+
+    if (payload.stream && response instanceof Response) {
+      throw new Error('Stream response received in chat method. Use streamChat instead.');
+    }
+
+    return response as APIResponse;
   }
 
-  async streamChat(
+  async *streamChat(
     messages: ChatMessage[],
     options: ChatOptions = {}
   ): AsyncGenerator<APIResponse, void, unknown> {
-    const response = await this.chat(messages, { ...options, stream: true });
-    yield* this.handleStreamResponse(response);
+    const model = options.model || this.defaultModel;
+    
+    messages.forEach(msg => validateMessage(msg, isVisionModel(model)));
+
+    const payload = {
+      model,
+      messages,
+      temperature: options.temperature ?? 0.1,
+      top_p: options.top_p ?? 0.1,
+      max_tokens: options.max_tokens,
+      stream: true 
+    };
+
+    const response = await this.makeRequest(
+      '/chat/completions',
+      payload,
+      options.retry_count,
+      true 
+    );
+
+    // **Modified Check:**
+    if (
+      !response ||
+      !('body' in response) ||
+      typeof (response as any).body.getReader !== 'function'
+    ) {
+      throw new Error('Expected a streaming response');
+    }
+
+    yield* this.handleStreamResponse(response as Response);
   }
 
   private async *handleStreamResponse(
@@ -106,18 +146,43 @@ export class SambanovaClient {
   ): AsyncGenerator<APIResponse, void, unknown> {
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
-    
+    let buffer = '';
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
+      buffer += decoder.decode(value, { stream: true });
+      let lines = buffer.split('\n');
+      
+      buffer = lines.pop() || '';
       
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = JSON.parse(line.slice(6));
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('data: ')) {
+          const dataStr = trimmedLine.slice(6);
+          if (dataStr === '[DONE]') {
+            return;
+          }
+          try {
+            const data = JSON.parse(dataStr);
+            yield data;
+          } catch (e) {
+            console.error('Failed to parse stream data:', e);
+          }
+        }
+      }
+    }
+
+    // Processing any remaining buffer
+    if (buffer.startsWith('data: ')) {
+      const dataStr = buffer.slice(6);
+      if (dataStr !== '[DONE]') {
+        try {
+          const data = JSON.parse(dataStr);
           yield data;
+        } catch (e) {
+          console.error('Failed to parse stream data:', e);
         }
       }
     }

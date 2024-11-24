@@ -1,4 +1,3 @@
-// src/__tests__/client.test.ts
 import { SambanovaClient } from '../client';
 import { SambanovaError } from '../types';
 
@@ -90,11 +89,15 @@ describe('SambanovaClient', () => {
           code: 'INVALID_REQUEST'
         })
       });
-
-      await expect(client.chat([
-        { role: 'user', content: 'Hi!' }
-      ])).rejects.toThrow(SambanovaError);
+    
+      await expect(
+        client.chat(
+          [{ role: 'user', content: 'Hi!' }],
+          { retry_count: 0 } // this is 0 to prevent retries
+        )
+      ).rejects.toThrow(SambanovaError);
     });
+    
   });
 
   describe('streamChat', () => {
