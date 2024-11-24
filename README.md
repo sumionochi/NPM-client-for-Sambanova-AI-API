@@ -5,13 +5,13 @@ A JavaScript/TypeScript client for the Sambanova AI API. This package provides a
 ## Installation
 
 ```bash
-npm install sambanova-js
+npm install sambanova
 ```
 
 ## Quick Start
 
 ```javascript
-import { SambanovaClient } from 'sambanova-js';
+import { SambanovaClient } from 'sambanova';
 
 // Initialize the client
 const client = new SambanovaClient('YOUR_API_KEY');
@@ -85,7 +85,7 @@ async function visionExample() {
 ### Error Handling
 
 ```javascript
-import { SambanovaClient, SambanovaError } from 'sambanova-js';
+import { SambanovaClient, SambanovaError } from 'sambanova';
 
 try {
   const response = await client.chat([
@@ -111,7 +111,3 @@ const client = new SambanovaClient('YOUR_API_KEY', {
   defaultRetryDelay: 1000
 });
 ```
-
-## License
-
-[MIT](LICENSE)
