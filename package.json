@@ -1,6 +1,6 @@
 {
   "name": "sambanova",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TypeScript/Javascript client for Sambanova AI API with comprehensive model support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
