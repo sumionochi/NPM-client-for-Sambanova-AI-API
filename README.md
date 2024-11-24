@@ -243,7 +243,7 @@ const client = new SambanovaClient('YOUR_API_KEY', {
 
 ## Changelog
 
-### v1.0.4
+### v1.0.5
 
 - **Feature:** Added support for streaming responses for both text and vision models.
 - **Improvement:** Automatic image URL-to-base64 conversion for vision models.
