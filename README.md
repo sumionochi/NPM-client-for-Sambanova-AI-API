@@ -1,4 +1,3 @@
-```markdown
 # Sambanova JavaScript/TypeScript Client
 
 A JavaScript/TypeScript client for the Sambanova AI API. This package provides an easy way to interact with Sambanova's language and vision models.
