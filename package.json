@@ -1,0 +1,36 @@
+{
+  "name": "sambanova-ts-api",
+  "version": "1.0.0",
+  "description": "TypeScript/Javascript client for Sambanova AI API with comprehensive model support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "sambanova",
+    "ai",
+    "llm",
+    "vision",
+    "api",
+    "typescript"
+  ],
+  "author": "Aaditya Srivastava",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^16.18.119",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^4.9.5"
+  }
+}
