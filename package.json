@@ -1,5 +1,5 @@
 {
-  "name": "sambanova-api",
+  "name": "sambanova",
   "version": "1.0.0",
   "description": "TypeScript/Javascript client for Sambanova AI API with comprehensive model support",
   "main": "dist/index.js",
