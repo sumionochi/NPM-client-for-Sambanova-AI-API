@@ -244,7 +244,7 @@ const client = new SambanovaClient('YOUR_API_KEY', {
 
 ## Oneshot Example To Test All Features
 
-### Streaming
+### Note:
 
 Add your Sambanova API key and add Local image file path. A test Online image file URL is already in place but you can replace as needed.
 
